@@ -15,8 +15,8 @@ import javax.swing.JFrame;
 import javax.swing.Timer;
 
 public class FlappyCube implements ActionListener, MouseListener, KeyListener {
-	private final int WIDTH = 800;
-	private final int HEIGHT = 800;
+	private final int frame_width = 800;
+	private final int frame_height = 800;
 	
 	private int ticks, yMotion, score;
 	private boolean gameOver = false;
@@ -37,13 +37,13 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 		frame.addKeyListener(this);
 		frame.addMouseListener(this);
 		frame.add(renderer);
-		frame.setSize(WIDTH, HEIGHT);
+		frame.setSize(frame_width, frame_height);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setTitle("FlappyCube");
 		frame.setResizable(false);
 		frame.setVisible(true);
 		
-		bird = new Rectangle((WIDTH/2)-10,(HEIGHT/2)-10, 20, 20);
+		bird = new Rectangle((frame_width/2)-10,(frame_height/2)-10, 20, 20);
 		columns = new ArrayList<Rectangle>();
 		
 		addColumn(true);
@@ -60,19 +60,19 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 		int columnHeight = 50 + rand.nextInt(300);
 		
 		if(atStart) {
-			columns.add(new Rectangle(WIDTH + columnWidth + columns.size() * 300, HEIGHT - columnHeight - 120, columnWidth, columnHeight));
-			columns.add(new Rectangle(WIDTH + columnWidth + (columns.size() - 1) * 300, 0, columnWidth, HEIGHT - columnHeight - blankSpace));
+			columns.add(new Rectangle(frame_width + columnWidth + columns.size() * 300, frame_height - columnHeight - 120, columnWidth, columnHeight));
+			columns.add(new Rectangle(frame_width + columnWidth + (columns.size() - 1) * 300, 0, columnWidth, frame_height - columnHeight - blankSpace));
 		}
 		else {
-			columns.add(new Rectangle(columns.get(columns.size() - 1).x + 600, HEIGHT - columnHeight - 120, columnWidth, columnHeight));
-			columns.add(new Rectangle(columns.get(columns.size() - 1).x, 0, columnWidth, HEIGHT - columnHeight - blankSpace));
+			columns.add(new Rectangle(columns.get(columns.size() - 1).x + 600, frame_height - columnHeight - 120, columnWidth, columnHeight));
+			columns.add(new Rectangle(columns.get(columns.size() - 1).x, 0, columnWidth, frame_height - columnHeight - blankSpace));
 		}
 		
 	}
 	
 	public void cubeJump() {
 		if(gameOver) {
-			bird = new Rectangle((WIDTH/2)-10,(HEIGHT/2)-10, 20, 20);
+			bird = new Rectangle((frame_width/2)-10,(frame_height/2)-10, 20, 20);
 			columns.clear();
 			yMotion = 0;
 			score = 0;
@@ -103,16 +103,16 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 
 	public void repaint(Graphics g) {
 		g.setColor(Color.CYAN);
-		g.fillRect(0, 0, WIDTH, HEIGHT);
+		g.fillRect(0, 0, frame_width, frame_height);
 		
 		g.setColor(Color.RED);
 		g.fillRect(bird.x, bird.y, bird.width, bird.height);
 		
 		g.setColor(Color.DARK_GRAY);
-		g.fillRect(0, HEIGHT - 120, WIDTH, 150);
+		g.fillRect(0, frame_height - 120, frame_width, 150);
 		
 		g.setColor(Color.GREEN);
-		g.fillRect(0, HEIGHT - 120, WIDTH, 20);
+		g.fillRect(0, frame_height - 120, frame_width, 20);
 		
 		for (Rectangle column : columns) {
 			paintColumn(g, column);
@@ -122,16 +122,16 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 		g.setFont(new Font("Arial", 1, 100));
 		
 		if (!started) {
-			g.drawString("Click to start!", 75, HEIGHT / 2 - 25);
+			g.drawString("Click to start!", 75, frame_height / 2 - 25);
 		}
 		
 		if (gameOver) {
-			g.drawString("Game Over!", 125, HEIGHT / 2 - 25);
+			g.drawString("Game Over!", 125, frame_height / 2 - 25);
 			
 		}
 		
 		if (!gameOver && started) {
-			g.drawString(String.valueOf(score), WIDTH  / 2 - 25, 100 );
+			g.drawString(String.valueOf(score), frame_width  / 2 - 25, 100 );
 		}
 	}
 
@@ -189,12 +189,12 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 				}
 			}
 			
-			if (bird.y > HEIGHT - 120 || bird.y < 0) {
+			if (bird.y > frame_height - 120 || bird.y < 0) {
 				gameOver = true;
 			}
 			
-			if (bird.y + yMotion >= HEIGHT - 120) {
-				bird.y = HEIGHT - 120 - bird.height;
+			if (bird.y + yMotion >= frame_height - 120) {
+				bird.y = frame_height - 120 - bird.height;
 			}
 			
 		}
