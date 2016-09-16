@@ -72,7 +72,7 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 		timer.start();
 	}
 	
-	public void addColumn(boolean atStart) {
+	private void addColumn(boolean atStart) {
 		int blankSpace = 300;
 		int columnWidth = 100;
 		int columnHeight = 50 + rand.nextInt(300);
@@ -88,7 +88,7 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 		
 	}
 	
-	public void cubeJump() {
+	private void cubeJump() {
 		if(gameOver) {
 			cube = new Rectangle((frame_width/2)-10,(frame_height/2)-10, 20, 20);
 			columns.clear();
@@ -125,7 +125,7 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 		return dest;
 	}
 
-	public void repaint(Graphics g) {
+	protected void repaint(Graphics g) {
 		
 		// Sky color
 		g.setColor(Color.CYAN);
@@ -134,17 +134,10 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 		
 		// Cube
 		g.setColor(Color.RED);
-//		g.fillRect(cube.x, cube.y, cube.width, cube.height);
 		g.drawImage(cubeImg, cube.x, cube.y, null);
 		
 		// Ground Color
 		g.drawImage(groundImg, 0, frame_height - 120, null);
-//		g.setColor(Color.DARK_GRAY);
-//		g.fillRect(0, frame_height - 120, frame_width, 150);
-//		
-//		// Grass Color
-//		g.setColor(Color.GREEN);
-//		g.fillRect(0, frame_height - 120, frame_width, 20);
 		
 		// Draws the Columns
 		for (Rectangle column : columns) {
@@ -159,7 +152,8 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 		}
 		
 		if (gameOver) {
-			g.drawString("Game Over!", 125, frame_height / 2 - 25);
+			g.drawString("Game Over!", 125, frame_height / 2 - 125);
+			g.drawString("Score: " + String.valueOf(score), 200, 400 );
 			
 		}
 		
