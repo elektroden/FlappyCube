@@ -8,29 +8,39 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
 public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 	private final int frame_width = 800;
 	private final int frame_height = 800;
+	private final int game_speed = 20; // Lower is faster, Default: 20
 	
 	private int ticks, yMotion, score;
 	private boolean gameOver = false;
 	private boolean started;
 	
 	private Renderer renderer;
-	private Rectangle bird;
+	private Rectangle cube;
+	private BufferedImage cubeImg;
+	private BufferedImage pillarImg;
+	private BufferedImage groundImg;
+	
 	private ArrayList<Rectangle> columns;
 	private Random rand;
 	
 	public FlappyCube() {
 		JFrame frame = new JFrame();
 		renderer = new Renderer(this);
-		Timer timer = new Timer(20, this);
+		Timer timer = new Timer(game_speed, this);
 		
 		rand = new Random();
 		
@@ -43,8 +53,16 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 		frame.setResizable(false);
 		frame.setVisible(true);
 		
-		bird = new Rectangle((frame_width/2)-10,(frame_height/2)-10, 20, 20);
+		cube = new Rectangle((frame_width/2)-10,(frame_height/2)-10, 20, 20);
 		columns = new ArrayList<Rectangle>();
+		
+		try {
+			cubeImg = ImageIO.read(new File("cube.jpg"));
+			pillarImg = ImageIO.read(new File("pillar.jpg"));
+			groundImg = ImageIO.read(new File("ground.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 		
 		addColumn(true);
 		addColumn(true);
@@ -60,11 +78,11 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 		int columnHeight = 50 + rand.nextInt(300);
 		
 		if(atStart) {
-			columns.add(new Rectangle(frame_width + columnWidth + columns.size() * 300, frame_height - columnHeight - 120, columnWidth, columnHeight));
+			columns.add(new Rectangle(frame_width + columnWidth + columns.size() * 300, frame_height - columnHeight - 120, columnWidth, columnHeight + 10));
 			columns.add(new Rectangle(frame_width + columnWidth + (columns.size() - 1) * 300, 0, columnWidth, frame_height - columnHeight - blankSpace));
 		}
 		else {
-			columns.add(new Rectangle(columns.get(columns.size() - 1).x + 600, frame_height - columnHeight - 120, columnWidth, columnHeight));
+			columns.add(new Rectangle(columns.get(columns.size() - 1).x + 600, frame_height - columnHeight - 120, columnWidth, columnHeight + 10));
 			columns.add(new Rectangle(columns.get(columns.size() - 1).x, 0, columnWidth, frame_height - columnHeight - blankSpace));
 		}
 		
@@ -72,7 +90,7 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 	
 	public void cubeJump() {
 		if(gameOver) {
-			bird = new Rectangle((frame_width/2)-10,(frame_height/2)-10, 20, 20);
+			cube = new Rectangle((frame_width/2)-10,(frame_height/2)-10, 20, 20);
 			columns.clear();
 			yMotion = 0;
 			score = 0;
@@ -96,24 +114,39 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 		}
 	}
 	
-	public void paintColumn(Graphics g, Rectangle column) {
+	private void paintColumn(Graphics g, Rectangle column) {
 		g.setColor(Color.GREEN.darker());
-		g.fillRect(column.x, column.y, column.width, column.height);
+		g.drawImage(cropImage(pillarImg, column), column.x, column.y, null);
+//		g.fillRect(column.x, column.y, column.width, column.height);
+	}
+	
+	private BufferedImage cropImage(BufferedImage src, Rectangle pillar) {
+		BufferedImage dest = src.getSubimage(0, 0,  pillar.width, pillar.height);
+		return dest;
 	}
 
 	public void repaint(Graphics g) {
+		
+		// Sky color
 		g.setColor(Color.CYAN);
 		g.fillRect(0, 0, frame_width, frame_height);
 		
+		
+		// Cube
 		g.setColor(Color.RED);
-		g.fillRect(bird.x, bird.y, bird.width, bird.height);
+//		g.fillRect(cube.x, cube.y, cube.width, cube.height);
+		g.drawImage(cubeImg, cube.x, cube.y, null);
 		
-		g.setColor(Color.DARK_GRAY);
-		g.fillRect(0, frame_height - 120, frame_width, 150);
+		// Ground Color
+		g.drawImage(groundImg, 0, frame_height - 120, null);
+//		g.setColor(Color.DARK_GRAY);
+//		g.fillRect(0, frame_height - 120, frame_width, 150);
+//		
+//		// Grass Color
+//		g.setColor(Color.GREEN);
+//		g.fillRect(0, frame_height - 120, frame_width, 20);
 		
-		g.setColor(Color.GREEN);
-		g.fillRect(0, frame_height - 120, frame_width, 20);
-		
+		// Draws the Columns
 		for (Rectangle column : columns) {
 			paintColumn(g, column);
 		}
@@ -164,37 +197,41 @@ public class FlappyCube implements ActionListener, MouseListener, KeyListener {
 				}
 			}
 			
-			bird.y += yMotion;
+			cube.y += yMotion;
 			
+			// Collision check
 			for (Rectangle column : columns) {
-				if (column.y == 0 && bird.x + bird.width / 2 > column.x + column.width / 2 - 10 && bird.x + bird.width / 2 < column.x + column.width / 2 + 10) {
+				if (column.y == 0 && cube.x + cube.width / 2 > column.x + column.width / 2 - 10 && cube.x + cube.width / 2 < column.x + column.width / 2 + 10) {
 					score++;
 				}
 				
-				if (column.intersects(bird)) {
+				if (column.intersects(cube)) {
 					gameOver = true;
 					
-					if(bird.x <= column.x) {
-						bird.x = column.x - bird.width;
+					// Cube and column collision (doesn't go through column)
+					if(cube.x <= column.x) {
+						cube.x = column.x - cube.width;
 					}
 					else {
 						if (column.y != 0) {
-							bird.y = column.y - bird.height;
+							cube.y = column.y - cube.height;
 						}
-						else if (bird.y < column.height) {
-							bird.y = column.height;
+						else if (cube.y < column.height) {
+							cube.y = column.height;
 						}
 					}
 					
 				}
 			}
 			
-			if (bird.y > frame_height - 120 || bird.y < 0) {
+			// Frame and Ground Collision
+			if (cube.y > frame_height - 115 || cube.y < 0) {
 				gameOver = true;
 			}
 			
-			if (bird.y + yMotion >= frame_height - 120) {
-				bird.y = frame_height - 120 - bird.height;
+			// Ground collision (doesn't go through ground)
+			if (cube.y + yMotion >= frame_height - 110) {
+				cube.y = frame_height - 110 - cube.height;
 			}
 			
 		}
